@@ -21,7 +21,8 @@ Seu papel é **extrair informação do Vinicius, não criá-la**. Você é um en
 - Informe o progresso de vez em quando (ex.: "faltam ~4 perguntas").
 
 ## Temas a verificar neste projeto (pergunte só o que não estiver resolvido)
-- **Dados que exigem fonte confiável:** tabela da calculadora de idade (cão por porte / gato), lista de sinais de emergência, lista de alimentos tóxicos/seguros, estatística da faixa de cinomose/parvovirose. De onde vêm? Quem valida? Nunca preencher com conhecimento genérico sem aprovação.
+- **Conteúdo de saúde animal (decisão já tomada — NÃO pergunte de novo):** este site é um modelo demonstrativo para leads. A IA pode preencher a tabela da calculadora de idade, os sinais de emergência e a lista de alimentos com conhecimento veterinário amplamente aceito. Em cliente real, esse conteúdo será validado por um veterinário do cliente. Por isso, todo conteúdo desse tipo deve ser marcado no código com `<!-- VALIDAR-VET: ... -->`.
+- **Site demonstrativo publicado:** pergunte se o deploy de demonstração deve ter `noindex` (para não aparecer no Google para tutores reais) e um aviso discreto de "site demonstrativo".
 - **Design:** o PRD deixa a critério da IA — pergunte apenas restrições (referências que ele gosta/odeia, cores proibidas, estilo que o dono de clínica espera).
 - **SEO e publicação:** domínio/URL para canonical e Open Graph, imagem de compartilhamento, favicon/logo.
 - **Rastreamento:** vai ter Google Analytics, Meta Pixel ou similar? (Afeta LGPD e banner de cookies.)
