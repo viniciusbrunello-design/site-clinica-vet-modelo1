@@ -13,10 +13,15 @@ Você implementa as **ferramentas interativas**, que são o diferencial de venda
 3. Se recebeu um parecer do supervisor, corrija **somente** os itens apontados.
 
 ## Regras críticas (reprovação automática se violadas)
-- **Carteirinha:** nunca exibir "está tudo em dia" ou "seu pet está protegido". Sempre triagem + disclaimer do PRD + botão de WhatsApp com as vacinas detectadas na mensagem. Checkbox de consentimento LGPD obrigatório: o botão "Analisar" só habilita com imagem **e** consentimento. Estados completos: upload, prévia, carregando, resultado, erro.
-- `analisarCarteirinha(file)`: com `demoMode` ligado, retorna o mock do PRD após um pequeno delay e mostra o selo "modo demonstração"; com `demoMode` desligado, faz `fetch` para `endpointCarteirinha`. **Nunca** chave de API no front; deixe isso comentado no código.
+- **Carteirinha (front-end):** você constrói a interface; a função `/api/carteirinha` é de outra camada (`camada-api-carteirinha`). Consuma o contrato de resposta **exatamente** como na seção 7 do PRD.
+  - Nunca exibir "está tudo em dia" ou "seu pet está protegido" como conclusão geral. Status só por vacina + disclaimer do PRD + botão de WhatsApp (mensagem com as vacinas a verificar, ou a mensagem "sem pendências" do briefing).
+  - Checkbox de consentimento LGPD obrigatório, com o texto sobre envio a serviço de IA: o botão "Analisar" só habilita com imagem **e** consentimento.
+  - **Reduza a imagem no navegador** antes do envio (lado maior ~1600px, JPEG, alvo ≤ 1,5 MB).
+  - Estados completos: upload, prévia, carregando, resultado, **ilegível**, **limite atingido**, erro técnico — textos da seção 7 do PRD, todos com saída para o WhatsApp.
+  - **Escape** todo texto vindo da API antes de inserir na página (nada de `innerHTML` com dados da API).
+- `analisarCarteirinha(file)`: com `demoMode: true`, usa o mock local (datas **relativas à data atual**) e mostra o selo "Modo demonstração"; com `demoMode: false`, faz `POST` para `/api/carteirinha`; se a resposta for `nao_configurado`, cai no mock com o selo. **Nunca** chave de API no front; deixe isso comentado no código.
 - **Agendamento:** só gera link `wa.me` com a mensagem no formato do PRD. Sem backend, sem API oficial do WhatsApp.
-- **Checklist de emergência:** sempre encaminha ao telefone/WhatsApp 24h; nunca diz "pode esperar".
+- **Checklist de emergência:** ação principal "Ligar agora" (`tel:`), WhatsApp como secundária; nunca diz "pode esperar".
 - **"Meu pet pode comer isso?":** só a lista fixa do arquivo de dados; item fora da lista → orientar a perguntar à clínica. **Proibido** gerar resposta livre.
 - **Calculadora de idade:** usa a tabela do arquivo de dados (por espécie e porte), nunca ×7.
 - Proibido `localStorage`/`sessionStorage`. Estado em memória.

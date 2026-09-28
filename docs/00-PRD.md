@@ -1,6 +1,6 @@
 # PRD — Site 1: Clínica Veterinária (arquétipo clínico)
 
-> Documento para o Claude Code construir o **Site 1** de referência. É um site single page, construído em **Astro** e publicado na **Vercel via GitHub**, que depois vira template. Construa fiel a este documento; onde faltar detalhe, siga o `docs/design-system.md` (após aprovado) e a seção "Requisitos Técnicos" em vez de improvisar.
+> Documento para o Claude Code construir o **Site 1** de referência. É um site single page, construído em **Astro** e publicado na **Vercel via GitHub**, com uma única função de backend para a leitura da carteirinha por IA. Depois vira template. Construa fiel a este documento; onde faltar detalhe, siga o `docs/design-system.md` (após aprovado) e a seção "Requisitos Técnicos" em vez de improvisar.
 
 ---
 
@@ -40,7 +40,7 @@ Construa com estes dados concretos — não use "lorem ipsum" nem placeholders v
   - Dra. Carla Souza — Dermatologia — CRMV-SP 00000
   - Dr. Pedro Nakamura — Medicina felina — CRMV-SP 00000
 - **Horário:** Seg–Sex 8h–20h · Sáb 8h–16h · Dom e feriados: emergências 24h
-- **Contato:** WhatsApp/telefone (11) 99999-9999 · contato@vetsaude.com.br · Rua Exemplo, 123 — Vila Mariana, São Paulo/SP
+- **Contato:** WhatsApp/telefone (11) 99999-9999 *(fictício — na demonstração, os links de WhatsApp usam o número do Vinicius definido no briefing)* · contato@vetsaude.com.br · Rua Exemplo, 123 — Vila Mariana, São Paulo/SP
 - **Prova social:** 4,9★ no Google, +10 anos de bairro, +8.000 tutores atendidos.
 
 ---
@@ -83,44 +83,73 @@ O design todo ficará a critério da IA que irá construir o projeto.
 
 ## 7. Herói 1 — Leitor de carteirinha de vacinação (feature de destaque)
 
-**O que é:** o tutor envia a foto da carteirinha; uma IA de visão lê e devolve uma **triagem** das vacinas, sempre encaminhando para o WhatsApp da clínica. É o gancho que diferencia o site. Fica no herói, à direita da headline.
+**O que é:** o tutor envia a foto da carteirinha; uma **IA de visão real** lê nomes e datas das vacinas, um conjunto de **regras fixas** classifica cada vacina e o site devolve uma **triagem**, sempre encaminhando para o WhatsApp da clínica. É o gancho que diferencia o site. Fica no herói, à direita da headline.
 
 **Faixa-âncora (banner) acima do widget** — usar estatística REAL, nunca número inventado:
 
 > "Cinomose e parvovirose matam até 90% dos cães não vacinados. O seu pet está protegido? Envie a foto da carteirinha e descubra em segundos se há vacinas em atraso." *(fonte: letalidade de cinomose 50–90% em cães não vacinados; parvovirose de alta mortalidade em filhotes)*
 
-**Fluxo e estados:**
+**Fluxo e estados (front-end):**
 
 1. Área de upload (arrastar ou tocar; no celular abrir câmera: `accept="image/*" capture="environment"`).
-2. Prévia da imagem carregada.
-3. **Checkbox de consentimento obrigatório** (LGPD) — botão "Analisar" só habilita com imagem + consentimento marcados.
+2. Prévia da imagem carregada. A imagem é **reduzida no navegador** antes do envio (lado maior ~1600px, JPEG, alvo ≤ 1,5 MB) — a Vercel recusa requisições acima de ~4,5 MB.
+3. **Checkbox de consentimento obrigatório** (LGPD) — botão "Analisar" só habilita com imagem + consentimento marcados. O texto do consentimento informa que a foto é enviada a um serviço de IA apenas para leitura e não é armazenada.
 4. Estado de carregando (spinner + "Lendo a carteirinha…").
-5. Resultado: lista de vacinas lidas com status ("em dia" / "verificar"), + disclaimer, + botão grande de WhatsApp com as vacinas detectadas já escritas na mensagem.
-6. Estado de erro: se a leitura falhar, não trava — mostra "não consegui ler, tente foto mais nítida ou fale com a gente" + botão WhatsApp.
+5. **Resultado:** lista de vacinas lidas, cada uma com status **por vacina** ("em dia" / "verificar"), + disclaimer, + botão grande de WhatsApp com as vacinas a verificar já escritas na mensagem (ou a mensagem "sem pendências" do briefing, se nenhuma estiver a verificar).
+6. **Ilegível:** se a IA não conseguir identificar vacinas e datas (foto borrada, escura, cortada, letra ilegível, ou a imagem não é uma carteirinha), mostra: "Não consegui identificar as vacinas e datas. Tente uma foto mais nítida, com boa luz e a página inteira, ou fale com a gente." + botão WhatsApp.
+7. **Limite de uso atingido:** mostra "Muitas análises em pouco tempo. Tente novamente mais tarde ou fale com a gente pelo WhatsApp." + botão WhatsApp.
+8. **Erro técnico** (timeout, serviço fora): não trava — mesma saída amigável + botão WhatsApp.
 
 **Regras de segurança do conteúdo (CRÍTICO):**
 
-- **Nunca** afirmar "está tudo em dia / seu pet está protegido". Sempre enquadrar como triagem e remeter à clínica. Falso "em dia" é perigoso (raiva/parvo).
+- **Nunca** afirmar "está tudo em dia / seu pet está protegido" como conclusão geral. Status é sempre por vacina e sempre enquadrado como triagem. Falso "em dia" é perigoso (raiva/parvo).
 - Sempre exibir disclaimer: "Isto é uma triagem automática, não um laudo. A leitura de imagem pode falhar e o que cada pet precisa depende de idade, espécie e estilo de vida. Quem confirma é a equipe."
 - O objetivo é **puxar a conversa pro WhatsApp**, não dar veredito clínico.
 
-**Integração de IA (importante):**
+**Arquitetura da análise (backend mínimo na Vercel):**
 
-- Implementar com **`demoMode: true`** por padrão (em `src/data/cliente.json`): retorna um resultado de exemplo (mock) após um pequeno delay, para o site ser demonstrável e vendável sem backend. Mostrar um selo "modo demonstração" quando ligado.
-- Para produção: `demoMode: false` chama um endpoint configurável (`endpointCarteirinha` em `cliente.json`) — um webhook do N8N / backend do dono.
-- **NUNCA colocar a chave de API no front-end** (ficaria exposta no navegador). A chamada real passa pelo backend do dono, que guarda a chave. Deixar isso comentado no código.
-- Formato de retorno esperado do endpoint (igual ao mock):
+- **Uma única função serverless**: `src/pages/api/carteirinha.ts` (rota Astro com `prerender = false`, adapter `@astrojs/vercel`). O resto do site continua 100% estático.
+- **Divisão de responsabilidades — "a IA lê, a regra decide":**
+  1. A IA de visão (Anthropic, modelo Claude da linha Haiku ou equivalente de baixo custo — ID do modelo via variável de ambiente `MODELO_IA`) recebe a imagem e devolve **somente** JSON estruturado com: se está legível, espécie aparente, e a lista de vacinas com nome lido e data da última dose. Temperatura 0, `max_tokens` baixo.
+  2. O **código da função** (determinístico) mapeia cada nome lido para um tipo de vacina e aplica `src/data/regras-vacinas.json` (intervalo de reforço por vacina e espécie, marcado `VALIDAR-VET`) comparando com a **data atual**. Vacina não reconhecida, sem data ou com data ilegível → "verificar".
+  3. A IA **nunca** decide se está vencida e nunca gera texto exibido livremente ao usuário.
+- **Validação da saída da IA:** o JSON é validado contra um esquema; qualquer desvio → tratado como ilegível. Todo texto vindo da IA (nomes de vacina) é **escapado** antes de exibir (a imagem pode conter texto malicioso).
+- **Chave de API:** somente em variável de ambiente (`ANTHROPIC_API_KEY`) — no `.env` local (fora do Git) e no painel da Vercel. **Nunca** no código, no front-end, em logs ou em mensagens de erro.
+- **Privacidade:** a imagem **não é armazenada** em lugar nenhum (nem em log). Processada em memória e descartada.
+
+**Proteção contra abuso e custo (OBRIGATÓRIO — em camadas):**
+
+1. **Validação de entrada:** só `POST`; só `image/jpeg`, `image/png`, `image/webp`; tamanho máximo 4 MB; recusa requisições sem o consentimento marcado; verifica `Origin` do próprio site.
+2. **Limite de requisições persistente** com Upstash Redis (`@upstash/ratelimit`, integrado pelo Marketplace da Vercel; variáveis `UPSTASH_REDIS_REST_URL` e `UPSTASH_REDIS_REST_TOKEN`):
+   - **por visitante (IP):** máx. 5 análises por hora e 10 por dia;
+   - **global do site:** máx. 200 análises por dia (teto de custo).
+   - Valores configuráveis em `cliente.json` (`carteirinha.limites`). O IP é usado apenas como chave temporária (com hash) e expira sozinho.
+3. **Falha fechada:** se a chave da IA **ou** o limitador não estiverem configurados, a função **não chama a IA** e responde "não configurado" → o site cai no modo demonstração. Nunca rodar IA real sem limitador.
+4. **Custo por chamada limitado:** imagem reduzida, `max_tokens` baixo, timeout de ~20s.
+5. **Rede de segurança final (manual, fora do código):** limite de gasto mensal configurado no painel da Anthropic. Opcional: regra de rate limit no Firewall da Vercel para `/api/carteirinha`.
+
+**Modo demonstração (`demoMode`):**
+
+- `demoMode: true` em `cliente.json` → o front **não chama a API** e usa um mock local (útil para desenvolvimento e para clones sem chave configurada). Selo visível "Modo demonstração".
+- `demoMode: false` → o front chama `/api/carteirinha`. Se a API responder "não configurado", o front cai automaticamente no mock com o selo.
+- O mock usa **datas relativas à data atual** (ex.: V10 aplicada há 4 meses = em dia; antirrábica há 14 meses = verificar; gripe canina = verificar), nunca datas fixas.
+
+**Formato de resposta da API (e do mock):**
 
 ```json
 {
+  "status": "ok",
+  "legivel": true,
   "especie": "cão",
   "vacinas": [
-    { "nome": "V10 (múltipla)", "ultima": "03/2024", "status": "ok" },
-    { "nome": "Antirrábica",    "ultima": "01/2024", "status": "pendente" }
+    { "nome": "V10 (múltipla)", "ultima": "05/2026", "status": "ok" },
+    { "nome": "Antirrábica",    "ultima": "07/2025", "status": "pendente" }
   ],
   "observacao": "Leitura automática; datas podem variar conforme a caligrafia."
 }
 ```
+
+Outras respostas possíveis: `{ "status": "ilegivel", "legivel": false, "motivo": "..." }`, `{ "status": "limite" }`, `{ "status": "nao_configurado" }`, `{ "status": "erro" }`. Nenhuma resposta de erro expõe detalhes internos.
 
 ---
 
@@ -168,7 +197,7 @@ Escrever 3 depoimentos realistas de tutores (5★), incluindo um sobre emergênc
 > ⚠️ Estes depoimentos são de demonstração do template. Em cliente real, substituir obrigatoriamente por avaliações reais — nunca publicar depoimento inventado em site de cliente.
 
 ### Footer + LGPD
-Contato, navegação, e nota LGPD: imagens da checagem de vacinas usadas só para triagem, não armazenadas; triagem não substitui avaliação de veterinário.
+Contato, navegação, e nota LGPD: a foto da carteirinha é enviada a um serviço de inteligência artificial (Anthropic) apenas para leitura automática, não é armazenada, e o endereço de IP é usado de forma temporária só para limitar o uso da ferramenta; a triagem não substitui avaliação de veterinário. Controladora dos dados: a clínica (nome e contato vindos do `cliente.json`).
 
 ---
 
@@ -184,18 +213,20 @@ Três micro-ferramentas interativas, cada uma terminando em CTA de WhatsApp. Mar
 
 ## 11. Requisitos técnicos
 
-- **Stack:** Astro (saída 100% estática) + deploy na Vercel via GitHub. Sem backend, sem banco de dados.
+- **Stack:** Astro + deploy na Vercel via GitHub, com adapter `@astrojs/vercel`. **Todas as páginas são estáticas** (pré-renderizadas no build). **Única exceção de backend:** a função `src/pages/api/carteirinha.ts` (seção 7). Nenhum outro endpoint, banco de dados ou função serverless.
+- **Armazenamento:** nenhum banco de dados. **Única exceção:** Upstash Redis usado **exclusivamente** para contadores de limite de uso (chaves com hash e expiração automática). Nada de dado pessoal, imagem ou resultado armazenado.
+- **Variáveis de ambiente** (nunca no código; documentadas em `.env.example` sem valores): `ANTHROPIC_API_KEY`, `MODELO_IA`, `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN`. `.env` no `.gitignore`.
 - **Um componente por seção** em `src/components/` (ex.: `Hero.astro`, `Servicos.astro`). Ferramentas do Pacote Captação em `src/components/pacote-captacao/`.
-- **Dados do cliente isolados** em `src/data/cliente.json`: nome, WhatsApp, telefone, e-mail, endereço, horários, serviços, serviços do agendamento, equipe, depoimentos, prova social, mensagens prontas de WhatsApp, `demoMode`, `endpointCarteirinha` e as flags das dimensões variáveis (seção 12). **Nenhum dado do cliente hardcoded nos componentes.**
+- **Dados do cliente isolados** em `src/data/cliente.json`: nome, WhatsApp, telefone, e-mail, endereço, horários, serviços, serviços do agendamento, equipe, depoimentos, prova social, mensagens prontas de WhatsApp, `demoMode`, `demoSite`, `carteirinha.limites`, `site` (URL) e as flags das dimensões variáveis (seção 12). **Nenhum dado do cliente hardcoded nos componentes.**
+- **Regras de vacinas** em `src/data/regras-vacinas.json` (marcado `VALIDAR-VET`), usadas pelo código da função — nunca pela IA.
 - **Marca em variáveis CSS** no `:root` (trocar cores = trocar tema), seguindo o `docs/design-system.md`.
-- **Texto renderizado no HTML no build** (o Google precisa ler). Nada de injetar conteúdo textual via JS no navegador.
-- **JS apenas nas ferramentas interativas** (carteirinha, agendamento, pacote captação, menu mobile), como scripts isolados por componente.
+- **Texto renderizado no HTML no build** (o Google precisa ler). Nada de injetar conteúdo textual via JS no navegador (exceto os resultados dinâmicos das ferramentas interativas).
+- **JS no navegador apenas nas ferramentas interativas** (carteirinha, agendamento, pacote captação, menu mobile), como scripts isolados por componente.
 - **Proibido** `localStorage`/`sessionStorage`. Estado em memória.
-- **WhatsApp:** só via link `wa.me`.
-- **Fontes:** Google Fonts (ou fontes locais) — nenhuma outra dependência externa em tempo de execução.
+- **WhatsApp:** só via link `wa.me`. **Telefone:** link `tel:` (ação principal nos CTAs de emergência).
+- **Fontes:** Google Fonts (ou fontes locais) — nenhuma outra dependência externa em tempo de execução no navegador.
 - **Pontos de foto** marcados com `<!-- FOTO: ... -->` (placeholders elegantes: bloco com gradiente/ícone, sem depender de imagem externa que possa quebrar).
-- **Carteirinha:** função `analisarCarteirinha(file)` com `demoMode` (mock) e caminho de produção via `fetch` ao `endpointCarteirinha`; comentar no código a proibição de chave de API no front.
-- **Responsivo** (mobile-first, testar 360px) e **acessível** (foco visível, `prefers-reduced-motion`, labels, contraste AA).
+- **Responsivo** (mobile-first, testar 360px) e **acessível** (foco visível, `prefers-reduced-motion`, labels, contraste AA, mensagens de estado com `aria-live`).
 
 ---
 
@@ -204,7 +235,7 @@ Três micro-ferramentas interativas, cada uma terminando em CTA de WhatsApp. Mar
 Mesmo neste cliente elas têm valor fixo, mas devem existir como **flags em `cliente.json`** e ser marcadas no código (comentário) onde o template vai precisar dobrar depois. Isto evita rachaduras nos próximos clientes:
 
 - **Herói principal:** carteirinha (aqui) vs. slider antes/depois (Site 2).
-- **Tem carteirinha?** sim/não.
+- **Tem carteirinha?** sim/não (e, se sim, IA real ou só demonstração).
 - **Emergência 24h?** sim/não (some a faixa e a etiqueta se não).
 - **Espécies:** cão+gato / só cão / só gato (afeta textos).
 - **Nº de veterinários / layout da equipe:** 1 até 4+ (grid flexível).
@@ -227,25 +258,32 @@ Mesmo neste cliente elas têm valor fixo, mas devem existir como **flags em `cli
 ## 14. Fora de escopo (não construir agora)
 
 - Galeria/slider de antes e depois de banho e tosa (isso é o **Site 2**).
-- Login, área do tutor, prontuário, qualquer backend, banco de dados ou funções serverless.
+- Login, área do tutor, prontuário, banco de dados (exceto os contadores de limite de uso da seção 11) e qualquer backend além da função `/api/carteirinha`.
+- Armazenar imagens, resultados de triagem ou qualquer dado do tutor.
 - Pagamento real / cobrança.
 - Múltiplas páginas ou blog (pode ser add-on de SEO numa fase futura; agora é single page).
-- Integração real de IA na carteirinha (fica em `demoMode`; o endpoint é plugado depois).
+- Analytics / pixels de rastreamento (ponto comentado para o futuro).
 
 ---
 
 ## 15. Critérios de aceitação (definition of done)
 
-- [ ] `npm run build` gera o site estático sem erros e o deploy na Vercel funciona.
+- [ ] `npm run build` gera o site sem erros; todas as páginas são estáticas e a única rota dinâmica é `/api/carteirinha`.
 - [ ] Acima da dobra, no celular, aparecem: quem é a clínica, emergência 24h e um CTA de ação (agendar/carteirinha) sem precisar rolar.
 - [ ] Agendamento gera link `wa.me` com mensagem preenchida e abre o WhatsApp.
-- [ ] Carteirinha funciona em `demoMode`: upload → consentimento → analisar → resultado com disclaimer e botão de WhatsApp; nunca afirma "está tudo em dia".
-- [ ] Checklist de emergência e "meu pet pode comer isso" funcionam e sempre encaminham ao contato; "pode comer" usa lista fixa, não IA livre.
-- [ ] Dados do cliente isolados em `src/data/cliente.json` + variáveis CSS; nenhum dado do cliente hardcoded nos componentes; pontos de foto marcados com `FOTO`.
-- [ ] SEO: title, meta, OG, canonical, JSON-LD VeterinaryCare, um h1, HTML semântico, texto presente no HTML gerado.
+- [ ] Carteirinha em `demoMode`: upload → consentimento → analisar → resultado (mock com datas relativas) com disclaimer, selo "Modo demonstração" e botão de WhatsApp.
+- [ ] Carteirinha com IA real (chave + limitador configurados): uma foto legível retorna vacinas lidas com status por vacina calculado pelas regras; uma foto ilegível ou que não é carteirinha retorna o estado "ilegível"; nunca afirma "está tudo em dia" como conclusão geral.
+- [ ] Sem chave **ou** sem limitador configurado, a função não chama a IA e o site cai no modo demonstração.
+- [ ] Limite de uso funciona: a 6ª análise na mesma hora pelo mesmo visitante recebe o estado "limite atingido"; o teto global diário existe e é configurável.
+- [ ] Nenhuma chave de API no código, no front-end, no repositório, em logs ou em mensagens de erro; `.env` fora do Git; `.env.example` sem valores.
+- [ ] Nenhuma imagem ou resultado é armazenado; texto vindo da IA é escapado antes de exibir.
+- [ ] Checklist de emergência e "meu pet pode comer isso" funcionam e sempre encaminham ao contato (emergência: "Ligar agora" via `tel:` como ação principal); "pode comer" usa lista fixa, não IA.
+- [ ] Dados do cliente isolados em `src/data/cliente.json` + variáveis CSS; nenhum dado do cliente hardcoded nos componentes; pontos de foto marcados com `FOTO`; conteúdo de saúde marcado com `VALIDAR-VET`.
+- [ ] SEO: title, meta, OG, canonical, JSON-LD VeterinaryCare, um h1, HTML semântico, texto presente no HTML gerado; `noindex` + aviso de site demonstrativo quando `demoSite: true`.
 - [ ] Responsivo a 360px, foco de teclado visível, `prefers-reduced-motion` respeitado.
 - [ ] Visual segue o `docs/design-system.md` aprovado.
 - [ ] Dimensões variáveis da seção 12 existem como flags em `cliente.json` e estão marcadas com comentários no código.
+- [ ] `docs/deploy.md` explica, passo a passo e em linguagem simples, como configurar as variáveis de ambiente, o Upstash, o limite de gasto na Anthropic e o deploy na Vercel.
 
 ---
 

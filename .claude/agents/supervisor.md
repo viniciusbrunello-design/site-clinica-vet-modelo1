@@ -18,10 +18,14 @@ O orquestrador informa: **ID da camada** + **relatório do agente**.
 3. **Posse de arquivos:** rode `git status` e `git diff --stat` e confira se os arquivos alterados pertencem à camada, segundo o mapa de posse. Arquivo alterado fora do escopo = REPROVADO.
 4. **Contratos:** confira se os nomes expostos/consumidos batem exatamente com `04-camadas.md`.
 5. **Regras críticas** (qualquer violação = REPROVADO):
-   - carteirinha afirmando "em dia"/"protegido", sem disclaimer, sem consentimento, ou com chave de API no front;
+   - carteirinha afirmando "tudo em dia"/"protegido" como conclusão geral, sem disclaimer ou sem consentimento;
+   - **qualquer segredo** (chave, token) no código, no front, no repositório, em log, em resposta de erro ou em `docs/`;
+   - função `/api/carteirinha` que: deixa a IA decidir vencimento; não valida o JSON da IA; armazena ou loga a imagem; chama a IA sem chave **e** limitador configurados (falha aberta); não tem limite por IP **ou** teto global diário; não valida tipo, tamanho e consentimento;
+   - texto vindo da IA inserido na página sem escape;
+   - testes que chamam a API real da IA (devem simular);
    - "pode comer?" com resposta fora da lista fixa;
    - checklist de emergência minimizando ou dizendo "pode esperar";
-   - `localStorage`/`sessionStorage`, backend, serverless, API oficial do WhatsApp;
+   - `localStorage`/`sessionStorage`, API oficial do WhatsApp, banco de dados (exceto os contadores do Upstash) ou qualquer backend além de `/api/carteirinha`;
    - dado do cliente hardcoded fora do `cliente.json`;
    - texto do site injetado via JS em vez de estar no HTML gerado;
    - conteúdo de saúde sem marcação `VALIDAR-VET`;
@@ -29,7 +33,7 @@ O orquestrador informa: **ID da camada** + **relatório do agente**.
 
 ## Modo 2 — Revisão final do projeto
 O orquestrador pede "revisão final".
-1. Rode `npm run build`.
+1. Rode `npm run build` e os testes automatizados (`npm run test`).
 2. Confira **cada item da seção 15 do PRD** e **cada linha da matriz de rastreabilidade** do `03-plano.md`.
 3. Confira a integração: âncoras da navegação levam às seções certas, ordem das seções igual à seção 5 do PRD, flags das dimensões variáveis funcionando (teste mentalmente cada flag desligada lendo o código).
 

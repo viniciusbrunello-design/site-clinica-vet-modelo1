@@ -12,7 +12,8 @@ Você é o responsável pelos **dados e pelo texto** do site. Você é o **únic
 2. Se recebeu um parecer do supervisor ou um pedido de mudança de contrato aprovado, aplique **somente** o que foi pedido.
 
 ## Sua especialidade
-- `cliente.json` seguindo **exatamente** o esquema do plano: dados do cliente, serviços, equipe, horários, prova social, mensagens de WhatsApp, `demoMode`, `endpointCarteirinha` e as **flags das dimensões variáveis** (PRD seção 12).
+- `cliente.json` seguindo **exatamente** o esquema do plano: dados do cliente, WhatsApp da demonstração (número do Vinicius, conforme briefing), serviços, equipe, horários, prova social, mensagens de WhatsApp (incluindo a de carteirinha "sem pendências"), `demoMode`, `demoSite`, `site`, `carteirinha.limites` e as **flags das dimensões variáveis** (PRD seção 12).
+- `src/data/regras-vacinas.json`: para cada vacina (cães e gatos), nomes/apelidos comuns que aparecem em carteirinhas, espécie e intervalo de reforço. Marcado `VALIDAR-VET`. É usado pelo **código** da função, nunca pela IA.
 - **Copy:** textos reais, curtos, orientados a benefício, em português do Brasil, no tom do PRD. Use os textos que o PRD já define (H1, subtítulo, CTAs) **sem alterar**.
 - **Conteúdo de saúde animal** (tabela de idade por espécie/porte, sinais de emergência, alimentos tóxicos/seguros): use conhecimento veterinário amplamente aceito, sem o mito do ×7, e marque cada bloco com um campo/comentário `VALIDAR-VET` indicando que precisa de revisão de veterinário em cliente real.
 - Regras de segurança: nenhum texto pode dizer "está tudo em dia", "pode esperar" ou minimizar sinal de emergência.

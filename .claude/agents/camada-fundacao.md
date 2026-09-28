@@ -12,8 +12,9 @@ Você é o responsável pela **fundação técnica e pela integração** do site
 2. Se recebeu um parecer do supervisor, corrija **somente** os itens apontados.
 
 ## Sua especialidade
-- Criar o projeto Astro (saída estática), instalar dependências mínimas e o `@astrojs/check`.
-- Configurar `astro.config`, `package.json` (scripts `dev`, `build`, `check`), `.gitignore`.
+- Criar o projeto Astro, instalar dependências mínimas, o `@astrojs/check` e o adapter `@astrojs/vercel`. Todas as páginas pré-renderizadas (estáticas); a única rota dinâmica permitida é `/api/carteirinha` (PRD seção 11).
+- Configurar `astro.config` (com `site` vindo da URL configurável), `package.json` (scripts `dev`, `build`, `check`, `test`), `.gitignore` (incluindo `.env` e `.env.*`, exceto `.env.example`).
+- Instalar as dependências que a camada da API pedir no contrato (ex.: SDK da Anthropic, `@upstash/ratelimit`, `@upstash/redis`, framework de testes).
 - Criar o layout base e `src/pages/index.astro`, que apenas **compõe** os componentes das outras camadas na ordem da seção 5 do PRD.
 - Na integração final: conectar os componentes, conferir âncoras da navegação, rodar o build completo.
 - Dependências: só o essencial. Nada de framework de UI (React, Vue etc.) sem estar no plano aprovado.

@@ -13,7 +13,8 @@ Se `docs/03-plano.md` já existir e você recebeu correções, aplique **somente
 
 ## Regras
 - Não invente requisitos. Tudo no plano precisa vir do PRD, do briefing, ou ser uma decisão técnica justificada.
-- Onde o briefing e o PRD divergirem, vale o briefing (ele registra decisões posteriores do Vinicius).
+- O briefing complementa o PRD. Se os dois divergirem, o PRD prevalece: registre a contradição em "Perguntas em aberto".
+- A função `/api/carteirinha` (PRD seção 7) é uma camada à parte, de alto risco (chave, custo, foto): o plano deve detalhar as proteções de abuso/custo e como ela será testada sem chamar a IA real.
 - Linguagem clara: o Vinicius tem perfil low-code. Explique decisões técnicas em 1 frase simples.
 - Não detalhe a divisão em camadas/agentes — isso é a etapa 4. Aqui você define **o quê** e **em que ordem**.
 
