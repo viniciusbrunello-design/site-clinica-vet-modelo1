@@ -18,5 +18,17 @@ Registro do andamento (o que foi feito, por qual agente, pareceres do supervisor
 - `endpointCarteirinha` real (fase futura; site opera em `demoMode`).
 - Aprovação do `docs/design-system.md` antes das seções.
 
+## 2026-09-29
+
+### Etapa 3 — Plano técnico ✅ concluída
+- Gerado `docs/03-plano.md` pelo subagente `planejador` a partir do PRD e do briefing.
+- Uma rodada de correções aplicada (8 itens pedidos pelo Vinicius): flags duplicadas removidas do `cliente.json` (`demoMode` único; `flags.temCarteirinha`/`flags.especies` como fontes únicas); verificação de Origin por mesma origem (não pelo campo `site`); robots.txt/sitemap como rotas geradas do `cliente.json` com `noindex` como único bloqueio em demo; Vitest + zod nos testes; variáveis CSS no passo 2 (design system); perguntas 1 e 2 resolvidas (URL provisória e OG via `sharp`); agendamento sem datas passadas (dd/mm/aaaa); matriz e riscos atualizados.
+- **APROVADO pelo Vinicius em 2026-09-29.**
+
+### Pendências abertas (não bloqueiam)
+- Provisionamento da IA real: chave Anthropic (com teto de gasto), Upstash e variáveis de ambiente (Vinicius). Até lá, o site opera em modo demonstração (falha fechada).
+- Aprovação do `docs/design-system.md` antes das seções (etapa de execução).
+- Confirmação/troca da URL da Vercel no `cliente.json` na hora do deploy (provisória: `https://site-clinica-vet-modelo1.vercel.app`).
+
 ### Próximo passo
-Revisar o `docs/02-briefing.md` e, quando aprovado, rodar `/planejar` (Etapa 3).
+Rodar `/camadas` (Etapa 4): dividir o plano aprovado em camadas de trabalho (`docs/04-camadas.md`).
