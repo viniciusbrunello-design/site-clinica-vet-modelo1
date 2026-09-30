@@ -30,5 +30,19 @@ Registro do andamento (o que foi feito, por qual agente, pareceres do supervisor
 - Aprovação do `docs/design-system.md` antes das seções (etapa de execução).
 - Confirmação/troca da URL da Vercel no `cliente.json` na hora do deploy (provisória: `https://site-clinica-vet-modelo1.vercel.app`).
 
+## 2026-09-30
+
+### Etapa 4 — Camadas ✅ concluída
+- Gerado `docs/04-camadas.md` pelo subagente `arquiteto-camadas` a partir do plano aprovado: 8 camadas (C1–C8), 6 ondas de execução e 2 portões de aprovação (design-system e entrega final), com posse exclusiva de arquivos, contratos entre camadas, critérios de aceite verificáveis e matriz de cobertura completa.
+- Uma rodada de correções aplicada (4 itens pedidos pelo Vinicius): (1) `Hero.astro` expõe `<slot name="interativo" />` e os interativos de C5 são compostos por C8 no `index.astro` (resolve conflito de posse); (2) lista mínima obrigatória de 21 ícones fixada no contrato de C2 (C2 e C3 rodam em paralelo); (3) `og.png` gerado localmente por `npm run og` (fora do build) e commitado, com `og.svg` em paths; (4) aviso visível de site demonstrativo movido para C4 (Footer/faixa), com campo `avisoDemo` no `cliente.json`; `Seo.astro` fica só com as tags do `<head>`.
+- Checagem do orquestrador: nenhum arquivo com dois donos, matriz de cobertura completa, critérios verificáveis, todos os agentes existem em `.claude/agents/`.
+- **APROVADO pelo Vinicius em 2026-09-30.**
+
+### Pendências abertas (não bloqueiam)
+- Provisionamento da IA real: chave Anthropic (com teto de gasto), Upstash e variáveis de ambiente (Vinicius). Até lá, o site opera em modo demonstração (falha fechada).
+- Aprovação do `docs/design-system.md` no Portão 1 (após C2, antes das seções C4).
+- Confirmação/troca da URL da Vercel no `cliente.json` na hora do deploy (provisória: `https://site-clinica-vet-modelo1.vercel.app`).
+- Regenerar `public/og.png` com `npm run og` sempre que a marca mudar.
+
 ### Próximo passo
-Rodar `/camadas` (Etapa 4): dividir o plano aprovado em camadas de trabalho (`docs/04-camadas.md`).
+Rodar `/executar` (Etapas 5 e 6): executar as camadas com os subagentes e supervisionar cada entrega até a aprovação, respeitando as ondas e os portões de `docs/04-camadas.md`.
